@@ -1,2 +1,0 @@
-
-<?php echo $__env->make('publishers.form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Baby\Desktop\laravel\kandalayang-library\resources\views/publishers/edit.blade.php ENDPATH**/ ?>

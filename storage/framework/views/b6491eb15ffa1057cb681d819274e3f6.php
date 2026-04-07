@@ -1,2 +1,0 @@
-
-<?php echo $__env->make('e-resources.form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Baby\Desktop\laravel\kandalayang-library\resources\views/e-resources/create.blade.php ENDPATH**/ ?>

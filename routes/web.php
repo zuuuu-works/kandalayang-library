@@ -17,10 +17,10 @@ Route::get('/', fn() => redirect()->route('login'));
 // ─── Authentication Module (All roles) ───────────────────────────────────────
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',   [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class, 'register']);
+    Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login',    [AuthController::class, 'login']);
+    Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -35,7 +35,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
     Route::post('/search/access/{eResource}', [SearchController::class, 'access'])->name('search.access');
 
-    // Simple dashboards per role
+    // ── File Access (All roles) ───────────────────────────────────────────────
+    Route::get('/file/access/{eResource}', [FileAccessController::class, 'access'])->name('file.access');
+
+    // ── Dashboards per role ───────────────────────────────────────────────────
     Route::get('/dashboard/librarian',  fn() => view('dashboard.librarian'))->name('librarian.dashboard');
     Route::get('/dashboard/student',    fn() => view('dashboard.student'))->name('student.dashboard');
     Route::get('/dashboard/faculty',    fn() => view('dashboard.faculty'))->name('faculty.dashboard');
@@ -50,16 +53,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('publishers', PublisherController::class)->except(['show']);
 
         // User Management Module
-        Route::get('/users',                    [UserManagementController::class, 'index'])->name('users.index');
-        Route::get('/users/{user}',             [UserManagementController::class, 'show'])->name('users.show');
-        Route::get('/users/{user}/edit',        [UserManagementController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}',             [UserManagementController::class, 'update'])->name('users.update');
-        Route::patch('/users/{user}/activate',  [UserManagementController::class, 'activate'])->name('users.activate');
-        Route::patch('/users/{user}/deactivate',[UserManagementController::class, 'deactivate'])->name('users.deactivate');
+        Route::get('/users',                     [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}',              [UserManagementController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit',         [UserManagementController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}',              [UserManagementController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/activate',   [UserManagementController::class, 'activate'])->name('users.activate');
+        Route::patch('/users/{user}/deactivate', [UserManagementController::class, 'deactivate'])->name('users.deactivate');
 
         // Reporting Module
         Route::get('/reports',             [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/access-logs', [ReportController::class, 'accessLogs'])->name('reports.access-logs');
-         Route::get('/file/access/{eResource}', [FileAccessController::class, 'access'])->name('file.access');
-        });
+    });
 });

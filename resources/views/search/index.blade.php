@@ -2,9 +2,19 @@
 @section('title', 'Search E-Resources')
 
 @section('content')
-<div class="page-header">
-    <h4><i class="bi bi-search me-2"></i>Search E-Resources</h4>
-    <small class="text-muted">Browse and access the library's digital collection</small>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4><i class="bi bi-search me-2"></i>Search E-Resources</h4>
+        <small class="text-muted">Browse and access the library's digital collection</small>
+    </div>
+    <a href="{{ route('bookmarks.index') }}" class="btn btn-sm btn-outline-warning">
+        <i class="bi bi-bookmark-heart me-1"></i>
+        My Bookmarks
+        @php $bookmarkCount = auth()->user()->bookmarks()->count(); @endphp
+        @if($bookmarkCount > 0)
+            <span class="badge bg-warning text-dark ms-1">{{ $bookmarkCount }}</span>
+        @endif
+    </a>
 </div>
 
 {{-- Search & Filter Form --}}
@@ -14,7 +24,8 @@
             <label class="form-label fw-semibold small">Keyword</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" name="keyword" class="form-control" placeholder="Title, description, ISBN..."
+                <input type="text" name="keyword" class="form-control"
+                       placeholder="Title, description, ISBN..."
                        value="{{ request('keyword') }}">
             </div>
         </div>
@@ -23,7 +34,8 @@
             <select name="category_id" class="form-select">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                    <option value="{{ $category->id }}"
+                        {{ request('category_id') == $category->id ? 'selected' : '' }}>
                         {{ $category->name }}
                     </option>
                 @endforeach
@@ -49,7 +61,6 @@
     </form>
 </div>
 
-{{-- Results --}}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <small class="text-muted">{{ $eResources->total() }} resource(s) found</small>
 </div>
@@ -78,7 +89,9 @@
                 <p class="text-muted small mb-3" style="font-size:0.8rem; line-height:1.4;">
                     {{ Str::limit($resource->description, 90) }}
                 </p>
+
                 <div class="d-flex gap-2">
+                    {{-- View --}}
                     <form method="POST" action="{{ route('search.access', $resource) }}" class="flex-grow-1">
                         @csrf
                         <input type="hidden" name="access_type" value="view">
@@ -86,11 +99,24 @@
                             <i class="bi bi-eye me-1"></i>View
                         </button>
                     </form>
+
+                    {{-- Download --}}
                     <form method="POST" action="{{ route('search.access', $resource) }}">
                         @csrf
                         <input type="hidden" name="access_type" value="download">
-                        <button type="submit" class="btn btn-sm btn-outline-success">
+                        <button type="submit" class="btn btn-sm btn-outline-success" title="Download">
                             <i class="bi bi-download"></i>
+                        </button>
+                    </form>
+
+                    {{-- Bookmark toggle --}}
+                    <form method="POST" action="{{ route('bookmarks.toggle', $resource) }}">
+                        @csrf
+                        @php $isBookmarked = auth()->user()->hasBookmarked($resource->id); @endphp
+                        <button type="submit"
+                                class="btn btn-sm {{ $isBookmarked ? 'btn-warning' : 'btn-outline-warning' }}"
+                                title="{{ $isBookmarked ? 'Remove Bookmark' : 'Bookmark this' }}">
+                            <i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i>
                         </button>
                     </form>
                 </div>
@@ -104,9 +130,6 @@
     </div>
     @endforeach
 </div>
-
-<div class="mt-4">
-    {{ $eResources->links() }}
-</div>
+<div class="mt-4">{{ $eResources->links() }}</div>
 @endif
 @endsection

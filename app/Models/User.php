@@ -29,48 +29,36 @@ class User extends Authenticatable
         'password'          => 'hashed',
     ];
 
-    // ─── Role Helpers ───────────────────────────────────────────────────────────
+    // ─── Role Helpers ─────────────────────────────────────────────────────────
 
-    public function isLibrarian(): bool
-    {
-        return $this->role === 'librarian';
-    }
+    public function isLibrarian(): bool  { return $this->role === 'librarian'; }
+    public function isStudent(): bool    { return $this->role === 'student'; }
+    public function isFaculty(): bool    { return $this->role === 'faculty'; }
+    public function isResearcher(): bool { return $this->role === 'researcher'; }
+    public function isActive(): bool     { return $this->status === 'active'; }
 
-    public function isStudent(): bool
-    {
-        return $this->role === 'student';
-    }
-
-    public function isFaculty(): bool
-    {
-        return $this->role === 'faculty';
-    }
-
-    public function isResearcher(): bool
-    {
-        return $this->role === 'researcher';
-    }
-
-    public function isActive(): bool
-    {
-        return $this->status === 'active';
-    }
-
-    /**
-     * Get the user's full name.
-     */
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
     }
 
-    // ─── Relationships ───────────────────────────────────────────────────────────
+    // ─── Relationships ────────────────────────────────────────────────────────
 
-    /**
-     * One User has many Access Logs.
-     */
     public function accessLogs(): HasMany
     {
         return $this->hasMany(AccessLog::class);
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    /**
+     * Check if the user has bookmarked a specific resource.
+     */
+    public function hasBookmarked(int $eResourceId): bool
+    {
+        return $this->bookmarks()->where('e_resource_id', $eResourceId)->exists();
     }
 }

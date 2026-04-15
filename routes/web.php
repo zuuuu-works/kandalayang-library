@@ -105,5 +105,8 @@ Route::middleware('auth')->group(function () {
         // ─── ADMIN: RESOURCE REQUESTS ─────────────────────────
         Route::get('/admin/resource-requests',                          [ResourceRequestController::class, 'adminIndex'])->name('resource-requests.admin');
         Route::patch('/admin/resource-requests/{resourceRequest}',      [ResourceRequestController::class, 'updateStatus'])->name('resource-requests.status');
+        Route::delete('/resource-requests/{resourceRequest}', [ResourceRequestController::class, 'destroy'])
+        ->name('resource-requests.destroy');
+
     });
 });

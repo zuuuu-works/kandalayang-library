@@ -36,12 +36,13 @@ class ResourceRequestController extends Controller
             'title'            => ['required', 'string', 'max:255'],
             'author_name'      => ['nullable', 'string', 'max:255'],
             'isbn'             => ['nullable', 'string', 'max:50'],
-            'publication_year' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y') + 1],
+            'publication_year' => ['nullable', 'integer', 'min:1000', 'max:' . date('Y') + 1],
             'purpose'          => ['required', 'string'],
             'urgency'          => ['required', 'in:low,medium,high'],
         ]);
 
         $validated['user_id'] = Auth::id();
+        $validated['status']  = 'pending';
 
         ResourceRequest::create($validated);
 
@@ -50,12 +51,46 @@ class ResourceRequestController extends Controller
     }
 
     /**
-     * Librarian — view all resource requests.
+     * Researcher — cancel a pending request.
      */
-    public function adminIndex()
+    public function destroy(ResourceRequest $resourceRequest)
     {
-        $requests = ResourceRequest::with('user')
-            ->latest()->paginate(15);
+        // Only the owner can cancel, and only if still pending
+        abort_if(
+            $resourceRequest->user_id !== Auth::id() || $resourceRequest->status !== 'pending',
+            403
+        );
+
+        $resourceRequest->delete();
+
+        return back()->with('success', 'Request cancelled successfully.');
+    }
+
+    /**
+     * Librarian — view all resource requests with filters.
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = ResourceRequest::with('user')->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('urgency')) {
+            $query->where('urgency', $request->urgency);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('author_name', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) => $u->where('full_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
 
         return view('resource-requests.admin', compact('requests'));
     }

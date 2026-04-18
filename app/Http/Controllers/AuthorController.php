@@ -13,6 +13,12 @@ class AuthorController extends Controller
         return view('authors.index', compact('authors'));
     }
 
+    public function archived()
+    {
+        $authors = Author::onlyTrashed()->latest('deleted_at')->paginate(10);
+        return view('authors.archived', compact('authors'));
+    }
+
     public function create()
     {
         return view('authors.create');
@@ -53,15 +59,38 @@ class AuthorController extends Controller
             ->with('success', 'Author updated successfully.');
     }
 
+    /**
+     * Soft delete — archive the author.
+     */
     public function destroy(Author $author)
     {
-        if ($author->eResources()->count() > 0) {
-            return back()->with('error', 'Cannot delete — this author has existing e-resources.');
-        }
-
         $author->delete();
 
         return redirect()->route('authors.index')
-            ->with('success', 'Author deleted successfully.');
+            ->with('success', 'Author archived. Can be restored anytime.');
+    }
+
+    /**
+     * Restore an archived author.
+     */
+    public function restore(int $id)
+    {
+        $author = Author::onlyTrashed()->findOrFail($id);
+        $author->restore();
+
+        return redirect()->route('authors.archived')
+            ->with('success', "{$author->full_name} has been restored.");
+    }
+
+    /**
+     * Permanently delete an archived author.
+     */
+    public function forceDelete(int $id)
+    {
+        $author = Author::onlyTrashed()->findOrFail($id);
+        $author->forceDelete();
+
+        return redirect()->route('authors.archived')
+            ->with('success', 'Author permanently deleted.');
     }
 }

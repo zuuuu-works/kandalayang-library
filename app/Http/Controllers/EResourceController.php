@@ -14,10 +14,22 @@ class EResourceController extends Controller
     public function index()
     {
         $eResources = EResource::with(['category', 'author', 'publisher'])
-            ->latest()
-            ->paginate(10);
+            ->latest()->paginate(10);
 
         return view('e-resources.index', compact('eResources'));
+    }
+
+    /**
+     * Show archived (soft-deleted) e-resources.
+     */
+    public function archived()
+    {
+        $eResources = EResource::onlyTrashed()
+            ->with(['category', 'author', 'publisher'])
+            ->latest('deleted_at')
+            ->paginate(10);
+
+        return view('e-resources.archived', compact('eResources'));
     }
 
     public function create()
@@ -52,7 +64,6 @@ class EResourceController extends Controller
         }
 
         unset($validated['file_upload']);
-
         EResource::create($validated);
 
         return redirect()->route('e-resources.index')
@@ -100,22 +111,49 @@ class EResourceController extends Controller
         }
 
         unset($validated['file_upload']);
-
         $eResource->update($validated);
 
         return redirect()->route('e-resources.index')
             ->with('success', 'E-Resource updated successfully.');
     }
 
+    /**
+     * Soft delete — archive the resource (stays in database).
+     */
     public function destroy(EResource $eResource)
     {
+        $eResource->delete(); // soft delete — sets deleted_at
+
+        return redirect()->route('e-resources.index')
+            ->with('success', 'E-Resource archived successfully. It can be restored anytime.');
+    }
+
+    /**
+     * Restore an archived e-resource.
+     */
+    public function restore(int $id)
+    {
+        $eResource = EResource::onlyTrashed()->findOrFail($id);
+        $eResource->restore();
+
+        return redirect()->route('e-resources.archived')
+            ->with('success', "'{$eResource->title}' has been restored successfully.");
+    }
+
+    /**
+     * Permanently delete an archived e-resource.
+     */
+    public function forceDelete(int $id)
+    {
+        $eResource = EResource::onlyTrashed()->findOrFail($id);
+
         if ($eResource->file_path) {
             Storage::disk('public')->delete($eResource->file_path);
         }
 
-        $eResource->delete();
+        $eResource->forceDelete();
 
-        return redirect()->route('e-resources.index')
-            ->with('success', 'E-Resource deleted successfully.');
+        return redirect()->route('e-resources.archived')
+            ->with('success', 'E-Resource permanently deleted.');
     }
 }

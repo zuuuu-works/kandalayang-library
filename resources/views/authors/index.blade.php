@@ -6,7 +6,10 @@
     <div>
         <h4><i class="bi bi-person-lines-fill me-2"></i>Authors</h4>
         <small class="text-muted">Manage all authors in the system</small>
-    </div>
+<div class="d-flex gap-2">
+    <a href="{{ route('authors.archived') }}" class="btn btn-sm btn-outline-warning">
+        <i class="bi bi-archive me-1"></i> View Archived
+    </a>
     <a href="{{ route('authors.create') }}" class="btn btn-primary btn-sm">
         <i class="bi bi-plus-circle me-1"></i> Add Author
     </a>

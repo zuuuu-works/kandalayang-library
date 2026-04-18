@@ -27,10 +27,10 @@ Route::get('/', fn() => redirect()->route('login'));
 // AUTHENTICATION MODULE
 // ─────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
-    Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',   [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class, 'register']);
+    Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login',    [AuthController::class, 'login']);
+    Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -59,10 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookmarks/toggle/{eResource}', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{bookmark}', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
 
-    // ─── READING HISTORY (ALL USERS) ─────────────────────────
+    // ─── READING HISTORY ─────────────────────────────────────
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
 
-    // ─── CITATIONS (ALL USERS) ───────────────────────────────
+    // ─── CITATIONS ───────────────────────────────────────────
     Route::get('/citations/{eResource}', [CitationController::class, 'show'])->name('citations.show');
 
     // ─── RECOMMENDATIONS ──────────────────────────────────────
@@ -81,10 +81,23 @@ Route::middleware('auth')->group(function () {
     // ─────────────────────────────────────────────────────────
     Route::middleware('role:librarian')->group(function () {
 
-        // ─── E-RESOURCE MANAGEMENT ────────────────────────────
+        // ─── E-RESOURCE MANAGEMENT (with Archive/Restore) ────
         Route::resource('e-resources', EResourceController::class);
+        Route::get('/e-resources-archived',             [EResourceController::class, 'archived'])->name('e-resources.archived');
+        Route::patch('/e-resources/{id}/restore',       [EResourceController::class, 'restore'])->name('e-resources.restore');
+        Route::delete('/e-resources/{id}/force-delete', [EResourceController::class, 'forceDelete'])->name('e-resources.force-delete');
+
+        // ─── AUTHORS (with Archive/Restore) ───────────────────
         Route::resource('authors', AuthorController::class)->except(['show']);
+        Route::get('/authors-archived',             [AuthorController::class, 'archived'])->name('authors.archived');
+        Route::patch('/authors/{id}/restore',       [AuthorController::class, 'restore'])->name('authors.restore');
+        Route::delete('/authors/{id}/force-delete', [AuthorController::class, 'forceDelete'])->name('authors.force-delete');
+
+        // ─── PUBLISHERS (with Archive/Restore) ────────────────
         Route::resource('publishers', PublisherController::class)->except(['show']);
+        Route::get('/publishers-archived',             [PublisherController::class, 'archived'])->name('publishers.archived');
+        Route::patch('/publishers/{id}/restore',       [PublisherController::class, 'restore'])->name('publishers.restore');
+        Route::delete('/publishers/{id}/force-delete', [PublisherController::class, 'forceDelete'])->name('publishers.force-delete');
 
         // ─── USER MANAGEMENT ──────────────────────────────────
         Route::get('/users',                     [UserManagementController::class, 'index'])->name('users.index');
@@ -99,14 +112,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/access-logs', [ReportController::class, 'accessLogs'])->name('reports.access-logs');
 
         // ─── ADMIN: RECOMMENDATIONS ───────────────────────────
-        Route::get('/admin/recommendations',                        [RecommendationController::class, 'adminIndex'])->name('recommendations.admin');
-        Route::patch('/admin/recommendations/{recommendation}',     [RecommendationController::class, 'updateStatus'])->name('recommendations.status');
+        Route::get('/admin/recommendations',                    [RecommendationController::class, 'adminIndex'])->name('recommendations.admin');
+        Route::patch('/admin/recommendations/{recommendation}', [RecommendationController::class, 'updateStatus'])->name('recommendations.status');
 
         // ─── ADMIN: RESOURCE REQUESTS ─────────────────────────
-        Route::get('/admin/resource-requests',                          [ResourceRequestController::class, 'adminIndex'])->name('resource-requests.admin');
-        Route::patch('/admin/resource-requests/{resourceRequest}',      [ResourceRequestController::class, 'updateStatus'])->name('resource-requests.status');
-        Route::delete('/resource-requests/{resourceRequest}', [ResourceRequestController::class, 'destroy'])
-        ->name('resource-requests.destroy');
-
+        Route::get('/admin/resource-requests',                       [ResourceRequestController::class, 'adminIndex'])->name('resource-requests.admin');
+        Route::patch('/admin/resource-requests/{resourceRequest}',   [ResourceRequestController::class, 'updateStatus'])->name('resource-requests.status');
     });
 });

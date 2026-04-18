@@ -8,7 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     * Order matters — seed parent tables before child tables.
+     * Order matters — parent tables before child tables.
      */
     public function run(): void
     {
@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
             AuthorSeeder::class,     // 2. No dependencies
             PublisherSeeder::class,  // 3. No dependencies
             UserSeeder::class,       // 4. No dependencies
-            EResourceSeeder::class,  // 5. Needs categories, authors, publishers
-            AccessLogSeeder::class,  // 6. Needs users, e_resources
+            EResourceSeeder::class,  // 5. Needs: categories, authors, publishers
+            AccessLogSeeder::class,  // 6. Needs: users, e_resources
         ]);
     }
 }

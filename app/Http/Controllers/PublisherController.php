@@ -13,6 +13,12 @@ class PublisherController extends Controller
         return view('publishers.index', compact('publishers'));
     }
 
+    public function archived()
+    {
+        $publishers = Publisher::onlyTrashed()->latest('deleted_at')->paginate(10);
+        return view('publishers.archived', compact('publishers'));
+    }
+
     public function create()
     {
         return view('publishers.create');
@@ -53,15 +59,38 @@ class PublisherController extends Controller
             ->with('success', 'Publisher updated successfully.');
     }
 
+    /**
+     * Soft delete — archive the publisher.
+     */
     public function destroy(Publisher $publisher)
     {
-        if ($publisher->eResources()->count() > 0) {
-            return back()->with('error', 'Cannot delete — this publisher has existing e-resources.');
-        }
-
         $publisher->delete();
 
         return redirect()->route('publishers.index')
-            ->with('success', 'Publisher deleted successfully.');
+            ->with('success', 'Publisher archived. Can be restored anytime.');
+    }
+
+    /**
+     * Restore an archived publisher.
+     */
+    public function restore(int $id)
+    {
+        $publisher = Publisher::onlyTrashed()->findOrFail($id);
+        $publisher->restore();
+
+        return redirect()->route('publishers.archived')
+            ->with('success', "{$publisher->name} has been restored.");
+    }
+
+    /**
+     * Permanently delete an archived publisher.
+     */
+    public function forceDelete(int $id)
+    {
+        $publisher = Publisher::onlyTrashed()->findOrFail($id);
+        $publisher->forceDelete();
+
+        return redirect()->route('publishers.archived')
+            ->with('success', 'Publisher permanently deleted.');
     }
 }

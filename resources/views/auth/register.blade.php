@@ -13,7 +13,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 0;
         }
         .register-card {
             width: 100%;
@@ -25,96 +24,128 @@
         .register-header {
             background: #1a3c5e;
             border-radius: 16px 16px 0 0;
-            padding: 1.5rem 2rem;
+            padding: 1.25rem 2rem;
             text-align: center;
             color: white;
         }
-        .register-header h4 { font-weight: 700; margin: 0; }
-        .register-body { padding: 2rem; }
+        .register-header h4 { font-weight: 700; margin: 0.25rem 0 0; font-size: 1.1rem; }
+        .register-header small { opacity: 0.7; font-size: 0.75rem; }
+        .register-body { padding: 1.5rem 2rem; }
     </style>
 </head>
 <body>
-<div class="register-card card">
-    <div class="register-header">
-        <i class="bi bi-person-plus fs-3"></i>
-        <h4 class="mt-2">Create an Account</h4>
-        <small class="opacity-75">Kandalayang Library System</small>
-    </div>
-    <div class="register-body">
 
+<div class="register-card card">
+
+    {{-- Header --}}
+    <div class="register-header">
+        <i class="bi bi-book-half fs-4"></i>
+        <h4>Kandalayang Library</h4>
+        <small>E-Resource Management System</small>
+    </div>
+
+    <div class="register-body">
+        <h6 class="fw-bold text-center text-muted mb-3" style="font-size:0.85rem;">Create your account</h6>
+
+        {{-- Errors --}}
         @if($errors->any())
-            <div class="alert alert-danger py-2">
-                <ul class="mb-0 ps-3">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+            <div class="alert alert-danger py-1 px-3 small mb-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ $errors->first() }}
             </div>
         @endif
 
         <form method="POST" action="{{ route('register') }}">
             @csrf
 
-            <div class="row g-3 mb-3">
-                <div class="col">
-                    <label class="form-label fw-semibold">First Name</label>
-                    <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror"
+            {{-- Name Row --}}
+            <div class="row g-2 mb-2">
+                <div class="col-6">
+                    <label class="form-label fw-semibold mb-1 small">First Name</label>
+                    <input type="text" name="first_name"
+                           class="form-control form-control-sm @error('first_name') is-invalid @enderror"
                            value="{{ old('first_name') }}" placeholder="Juan" required>
                 </div>
-                <div class="col">
-                    <label class="form-label fw-semibold">Last Name</label>
-                    <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror"
+                <div class="col-6">
+                    <label class="form-label fw-semibold mb-1 small">Last Name</label>
+                    <input type="text" name="last_name"
+                           class="form-control form-control-sm @error('last_name') is-invalid @enderror"
                            value="{{ old('last_name') }}" placeholder="Dela Cruz" required>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Email Address</label>
-                <div class="input-group">
+            {{-- Email --}}
+            <div class="mb-2">
+                <label class="form-label fw-semibold mb-1 small">Email Address</label>
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                    <input type="email" name="email"
+                           class="form-control @error('email') is-invalid @enderror"
                            value="{{ old('email') }}" placeholder="you@example.com" required>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Role</label>
-                <select name="role" class="form-select @error('role') is-invalid @enderror" required>
-                    <option value="">-- Select your role --</option>
-                    <option value="student"    {{ old('role') === 'student'    ? 'selected' : '' }}>Student</option>
-                    <option value="faculty"    {{ old('role') === 'faculty'    ? 'selected' : '' }}>Faculty / Teacher</option>
-                    <option value="researcher" {{ old('role') === 'researcher' ? 'selected' : '' }}>Researcher</option>
-                </select>
+            {{-- Role Picker --}}
+            <div class="mb-2">
+                <label class="form-label fw-semibold mb-2 small">I am a...</label>
+                <div class="d-flex gap-2">
+                    <input type="radio" class="btn-check" name="role" id="role-student"
+                           value="student" {{ old('role') === 'student' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-primary btn-sm flex-fill" for="role-student">
+                        <i class="bi bi-mortarboard me-1"></i>Student
+                    </label>
+
+                    <input type="radio" class="btn-check" name="role" id="role-faculty"
+                           value="faculty" {{ old('role') === 'faculty' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-success btn-sm flex-fill" for="role-faculty">
+                        <i class="bi bi-person-workspace me-1"></i>Faculty
+                    </label>
+
+                    <input type="radio" class="btn-check" name="role" id="role-researcher"
+                           value="researcher" {{ old('role') === 'researcher' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-warning btn-sm flex-fill" for="role-researcher">
+                        <i class="bi bi-search me-1"></i>Researcher
+                    </label>
+                </div>
+                @error('role')
+                    <div class="text-danger small mt-1">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                    </div>
+                @enderror
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Password</label>
-                <div class="input-group">
+            {{-- Password --}}
+            <div class="mb-2">
+                <label class="form-label fw-semibold mb-1 small">Password</label>
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required>
+                    <input type="password" name="password"
+                           class="form-control" placeholder="Min. 8 characters" required>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-semibold">Confirm Password</label>
-                <div class="input-group">
+            {{-- Confirm Password --}}
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1 small">Confirm Password</label>
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                    <input type="password" name="password_confirmation" class="form-control" placeholder="Repeat password" required>
+                    <input type="password" name="password_confirmation"
+                           class="form-control" placeholder="Repeat password" required>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold py-2">
                 <i class="bi bi-person-check me-1"></i> Create Account
             </button>
         </form>
 
-        <hr class="my-3">
-        <p class="text-center text-muted mb-0" style="font-size:0.875rem;">
+        <hr class="my-2">
+        <p class="text-center text-muted mb-0" style="font-size:0.8rem;">
             Already have an account?
             <a href="{{ route('login') }}" class="fw-semibold">Sign in</a>
         </p>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

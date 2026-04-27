@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EResource;
+use App\Models\Category;
 use App\Models\AccessLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class SearchController extends Controller
 {
     /**
-     * Search and browse e-resources. (All roles)
+     * Search and browse e-resources with infinite scroll support.
      */
     public function index(Request $request)
     {
@@ -36,15 +37,15 @@ class SearchController extends Controller
             $query->where('file_type', $request->file_type);
         }
 
-        $eResources = $query->latest()->paginate(12)->withQueryString();
-
-        $categories = \App\Models\Category::all();
+        // 9 per page looks great in a 3-column grid (3 rows per load)
+        $eResources = $query->latest()->paginate(9)->withQueryString();
+        $categories = Category::all();
 
         return view('search.index', compact('eResources', 'categories'));
     }
 
     /**
-     * Access (view/download) an e-resource and log it.
+     * Log access and redirect to the resource.
      */
     public function access(Request $request, EResource $eResource)
     {
@@ -52,14 +53,27 @@ class SearchController extends Controller
             'access_type' => ['required', 'in:view,download,stream'],
         ]);
 
-        // Business Rule #10: Every access must be recorded in Access_Log
+        // Business Rule #10: Every access must be recorded
         AccessLog::create([
-            'user_id'      => Auth::id(),
+            'user_id'       => Auth::id(),
             'e_resource_id' => $eResource->id,
-            'accessed_at'  => now(),
-            'access_type'  => $validated['access_type'],
+            'accessed_at'   => now(),
+            'access_type'   => $validated['access_type'],
         ]);
 
-        return redirect()->away($eResource->file_url);
+        // Local file — serve directly
+        if ($eResource->file_path) {
+            return redirect()->route('file.access', [
+                'eResource' => $eResource,
+                'type'      => $validated['access_type'],
+            ]);
+        }
+
+        // External URL
+        if ($eResource->file_url) {
+            return redirect()->away($eResource->file_url);
+        }
+
+        return back()->with('error', 'No file available for this resource.');
     }
 }

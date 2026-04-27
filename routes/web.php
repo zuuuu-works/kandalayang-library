@@ -16,6 +16,7 @@ use App\Http\Controllers\CitationController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ResourceRequestController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\ForgotPasswordController;
 
 // ─────────────────────────────────────────────────────────────
 // PUBLIC ROUTES
@@ -31,6 +32,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login',    [AuthController::class, 'login']);
     Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // ─── PASSWORD RESET ───────────────────────────────────────
+    Route::get('/forgot-password',        [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password',       [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password',        [ForgotPasswordController::class, 'resetPassword'])->name('password.store');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])

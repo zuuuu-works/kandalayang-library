@@ -9,13 +9,14 @@
     $totalDL     = $user->accessLogs()->where('access_type', 'download')->count();
     $bookmarks   = $user->bookmarks()->count();
     $requests    = \App\Models\ResourceRequest::where('user_id', $user->id)->get();
-    $recentLogs  = $user->accessLogs()->with('eResource.category')->latest('accessed_at')->take(5)->get();
+    $recentLogs   = $user->accessLogs()->with('eResource.category')->latest('accessed_at')->take(5)->get();
+    $lastResource = $recentLogs->first()->eResource ?? null;
 @endphp
 
 {{-- ── Welcome Header ─────────────────────────────────────── --}}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4><i class="bi bi-mortarboard me-2"></i>Researcher Dashboard</h4>
+        <h4><i class="bi bi-mortarboard me-2"></i>Dashboard</h4>
         <small class="text-muted">Welcome back, {{ $user->full_name }}! Here's your research overview.</small>
     </div>
     <div class="d-flex gap-2">
@@ -190,6 +191,24 @@
                 <a href="{{ route('resource-requests.create') }}" class="btn btn-outline-danger text-start btn-sm">
                     <i class="bi bi-envelope-plus me-2"></i>Request a Resource
                 </a>
+
+                {{-- Citation shortcut — links to last accessed resource --}}
+                @if($lastResource)
+                    <a href="{{ route('citations.show', $lastResource) }}"
+                       class="btn btn-outline-secondary text-start btn-sm">
+                        <i class="bi bi-quote me-2"></i>Export Citation
+                        <span class="d-block text-muted" style="font-size:0.7rem; margin-top:1px;">
+                            {{ \Illuminate\Support\Str::limit($lastResource->title, 30) }}
+                        </span>
+                    </a>
+                @else
+                    <button class="btn btn-outline-secondary text-start btn-sm disabled" disabled>
+                        <i class="bi bi-quote me-2"></i>Export Citation
+                        <span class="d-block text-muted" style="font-size:0.7rem; margin-top:1px;">
+                            No resource accessed yet
+                        </span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>

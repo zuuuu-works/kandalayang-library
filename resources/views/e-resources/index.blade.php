@@ -6,13 +6,15 @@
     <div>
         <h4><i class="bi bi-journals me-2"></i>E-Resources</h4>
         <small class="text-muted">Manage the library's digital collection</small>
-<div class="d-flex gap-2">
-    <a href="{{ route('e-resources.archived') }}" class="btn btn-sm btn-outline-warning">
-        <i class="bi bi-archive me-1"></i> View Archived
-    </a>
-    <a href="{{ route('e-resources.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-circle me-1"></i> Add E-Resource
-    </a>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('e-resources.archived') }}" class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-archive me-1"></i> View Archived
+        </a>
+        <a href="{{ route('e-resources.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> Add E-Resource
+        </a>
+    </div>
 </div>
 
 <div class="card">
@@ -31,7 +33,7 @@
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="eresources-tbody">
                     @forelse($eResources as $resource)
                     <tr>
                         <td class="text-muted small">{{ $resource->id }}</td>
@@ -51,10 +53,10 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="{{ route('e-resources.destroy', $resource) }}" class="d-inline"
-                                  onsubmit="return confirm('Delete this resource?')">
+                                  onsubmit="return confirm('Archive this resource?')">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
+                                <button class="btn btn-sm btn-outline-danger" title="Archive">
+                                    <i class="bi bi-archive"></i>
                                 </button>
                             </form>
                         </td>
@@ -70,8 +72,105 @@
             </table>
         </div>
     </div>
-    @if($eResources->hasPages())
-    <div class="card-footer">{{ $eResources->links() }}</div>
-    @endif
+
+    {{-- Loading Spinner --}}
+    <div id="loading-spinner" class="text-center py-3" style="display:none;">
+        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+        <span class="text-muted small">Loading more resources...</span>
+    </div>
+
+    {{-- End of Results --}}
+    <div id="end-of-results" class="text-center py-3 text-muted small" style="display:none;">
+        <i class="bi bi-check-circle me-1 text-success"></i>
+        Showing all {{ $eResources->total() }} resource(s).
+    </div>
 </div>
+
+{{-- Pagination data --}}
+<div id="pagination-data"
+     data-next-page="{{ $eResources->nextPageUrl() }}"
+     data-current-page="{{ $eResources->currentPage() }}"
+     data-last-page="{{ $eResources->lastPage() }}"
+     style="display:none;">
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const tbody      = document.getElementById('eresources-tbody');
+    const spinner    = document.getElementById('loading-spinner');
+    const endMsg     = document.getElementById('end-of-results');
+    const pagination = document.getElementById('pagination-data');
+
+    if (!tbody || !pagination) return;
+
+    let isLoading   = false;
+    let nextPage    = pagination.dataset.nextPage;
+    let currentPage = parseInt(pagination.dataset.currentPage);
+    let lastPage    = parseInt(pagination.dataset.lastPage);
+
+    if (currentPage >= lastPage) {
+        if (endMsg) endMsg.style.display = 'block';
+        return;
+    }
+
+    // ── Sentinel ──────────────────────────────────────────────
+    const sentinel = document.createElement('div');
+    sentinel.style.height = '1px';
+    document.querySelector('.card').appendChild(sentinel);
+
+    const observer = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting && !isLoading && nextPage) {
+            loadMore();
+        }
+    }, { rootMargin: '150px' });
+
+    observer.observe(sentinel);
+
+    // ── Load More ─────────────────────────────────────────────
+    async function loadMore() {
+        if (isLoading || !nextPage) return;
+
+        isLoading = true;
+        spinner.style.display = 'block';
+
+        try {
+            const response = await fetch(nextPage, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) throw new Error('Network error');
+
+            const html   = await response.text();
+            const parser = new DOMParser();
+            const doc    = parser.parseFromString(html, 'text/html');
+
+            const newRows = doc.querySelectorAll('#eresources-tbody tr');
+            newRows.forEach(row => tbody.appendChild(row));
+
+            const newPagination = doc.getElementById('pagination-data');
+            if (newPagination) {
+                nextPage    = newPagination.dataset.nextPage || null;
+                currentPage = parseInt(newPagination.dataset.currentPage);
+                lastPage    = parseInt(newPagination.dataset.lastPage);
+            } else {
+                nextPage = null;
+            }
+
+            if (!nextPage || currentPage >= lastPage) {
+                endMsg.style.display = 'block';
+                observer.disconnect();
+            }
+
+        } catch (error) {
+            console.error('Infinite scroll error:', error);
+        } finally {
+            isLoading = false;
+            spinner.style.display = 'none';
+        }
+    }
+})();
+</script>
+@endpush

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('title');                                        // Business Rule #5
             $table->text('description')->nullable();
             $table->string('isbn')->nullable()->unique();                   // Bibliographic detail
-            $table->year('publication_year')->nullable();                   // Bibliographic detail
+            $table->integer('publication_year')->nullable();
             $table->string('file_url')->nullable();                         // Link or file path to the resource
             $table->string('file_type')->nullable();                        // e.g., PDF, ePub, Video
 

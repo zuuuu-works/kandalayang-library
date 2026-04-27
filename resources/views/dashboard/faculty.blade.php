@@ -12,7 +12,7 @@
 {{-- ── Welcome Header ─────────────────────────────────────── --}}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h4><i class="bi bi-person-workspace me-2"></i>Faculty Dashboard</h4>
+        <h4><i class="bi bi-person-workspace me-2"></i>Dashboard</h4>
         <small class="text-muted">Welcome back, {{ $user->full_name }}! Here's your overview.</small>
     </div>
     <div class="d-flex gap-2">

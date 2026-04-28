@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 // Controllers
 use App\Http\Controllers\AuthController;
@@ -17,6 +18,14 @@ use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ResourceRequestController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ForgotPasswordController;
+
+// ─── TEMP: DELETE AFTER RUNNING ───────────────────────────────
+Route::get('/run-migrations', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    Artisan::call('db:seed', ['--force' => true]);
+    return 'Done: ' . Artisan::output();
+});
+// ──────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────
 // PUBLIC ROUTES
@@ -78,9 +87,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/recommendations',       [RecommendationController::class, 'store'])->name('recommendations.store');
 
     // ─── RESOURCE REQUESTS ───────────────────────────────────
-    Route::get('/resource-requests',        [ResourceRequestController::class, 'index'])->name('resource-requests.index');
-    Route::get('/resource-requests/create', [ResourceRequestController::class, 'create'])->name('resource-requests.create');
-    Route::post('/resource-requests',       [ResourceRequestController::class, 'store'])->name('resource-requests.store');
+    Route::get('/resource-requests',                      [ResourceRequestController::class, 'index'])->name('resource-requests.index');
+    Route::get('/resource-requests/create',               [ResourceRequestController::class, 'create'])->name('resource-requests.create');
+    Route::post('/resource-requests',                     [ResourceRequestController::class, 'store'])->name('resource-requests.store');
+    Route::delete('/resource-requests/{resourceRequest}', [ResourceRequestController::class, 'destroy'])->name('resource-requests.destroy');
 
 
     // ─────────────────────────────────────────────────────────
@@ -123,7 +133,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/admin/recommendations/{recommendation}', [RecommendationController::class, 'updateStatus'])->name('recommendations.status');
 
         // ─── ADMIN: RESOURCE REQUESTS ─────────────────────────
-        Route::get('/admin/resource-requests',                       [ResourceRequestController::class, 'adminIndex'])->name('resource-requests.admin');
-        Route::patch('/admin/resource-requests/{resourceRequest}',   [ResourceRequestController::class, 'updateStatus'])->name('resource-requests.status');
+        Route::get('/admin/resource-requests',                     [ResourceRequestController::class, 'adminIndex'])->name('resource-requests.admin');
+        Route::patch('/admin/resource-requests/{resourceRequest}', [ResourceRequestController::class, 'updateStatus'])->name('resource-requests.status');
     });
 });

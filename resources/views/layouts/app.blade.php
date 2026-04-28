@@ -74,7 +74,7 @@
 </head>
 <body>
 
-{{-- Sidebar --}}
+{{-- ── Sidebar ──────────────────────────────────────────────── --}}
 <div class="sidebar d-flex flex-column">
     <div class="brand">
         <h5><i class="bi bi-book-half me-2"></i>Kandalayang</h5>
@@ -82,58 +82,105 @@
     </div>
 
     <nav class="mt-2 flex-grow-1">
+        @auth
         <div class="nav-section">General</div>
 
-        @auth
-            {{-- Dashboard link based on role --}}
-            <a href="{{ route(auth()->user()->role . '.dashboard') }}"
-               class="nav-link {{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
+        {{-- Dashboard --}}
+        <a href="{{ route(auth()->user()->role . '.dashboard') }}"
+           class="nav-link {{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+
+        {{-- Search — all roles --}}
+        <a href="{{ route('search.index') }}"
+           class="nav-link {{ request()->routeIs('search.*') ? 'active' : '' }}">
+            <i class="bi bi-search"></i> Search Resources
+        </a>
+
+        {{-- ── LIBRARIAN ─────────────────────────────────────── --}}
+        @if(auth()->user()->isLibrarian())
+            <div class="nav-section">Management</div>
+
+            <a href="{{ route('e-resources.index') }}"
+               class="nav-link {{ request()->routeIs('e-resources.*') ? 'active' : '' }}">
+                <i class="bi bi-journals"></i> E-Resources
+            </a>
+            <a href="{{ route('users.index') }}"
+               class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                <i class="bi bi-people"></i> Users
+            </a>
+            <a href="{{ route('authors.index') }}"
+               class="nav-link {{ request()->routeIs('authors.*') ? 'active' : '' }}">
+                <i class="bi bi-person-lines-fill"></i> Authors
+            </a>
+            <a href="{{ route('publishers.index') }}"
+               class="nav-link {{ request()->routeIs('publishers.*') ? 'active' : '' }}">
+                <i class="bi bi-building"></i> Publishers
             </a>
 
-            {{-- Search & Access — all roles --}}
-            <a href="{{ route('search.index') }}"
-               class="nav-link {{ request()->routeIs('search.*') ? 'active' : '' }}">
-                <i class="bi bi-search"></i> Search Resources
+            <div class="nav-section">Reports</div>
+
+            <a href="{{ route('reports.index') }}"
+               class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
+                <i class="bi bi-bar-chart-line"></i> Overview
+            </a>
+            <a href="{{ route('reports.access-logs') }}"
+               class="nav-link {{ request()->routeIs('reports.access-logs') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Access Logs
             </a>
 
-            {{-- Librarian-only links --}}
-            @if(auth()->user()->isLibrarian())
-                <div class="nav-section">Management</div>
+        {{-- ── STUDENT ───────────────────────────────────────── --}}
+        @elseif(auth()->user()->role === 'student')
+            <div class="nav-section">My Library</div>
 
-                <a href="{{ route('e-resources.index') }}"
-                   class="nav-link {{ request()->routeIs('e-resources.*') ? 'active' : '' }}">
-                    <i class="bi bi-journals"></i> E-Resources
-                </a>
-                <a href="{{ route('users.index') }}"
-                   class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i> Users
-                </a>
-                                <a href="{{ route('authors.index') }}"
-                   class="nav-link {{ request()->routeIs('authors.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-lines-fill"></i> Authors
-                </a>
-                <a href="{{ route('publishers.index') }}"
-                   class="nav-link {{ request()->routeIs('publishers.*') ? 'active' : '' }}">
-                    <i class="bi bi-building"></i> Publishers
-                </a>
+            <a href="{{ route('history.index') }}"
+               class="nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Reading History
+            </a>
+            <a href="{{ route('bookmarks.index') }}"
+               class="nav-link {{ request()->routeIs('bookmarks.*') ? 'active' : '' }}">
+                <i class="bi bi-bookmark-heart"></i> My Bookmarks
+            </a>
 
-                <div class="nav-section">Reports</div>
+        {{-- ── FACULTY ───────────────────────────────────────── --}}
+        @elseif(auth()->user()->role === 'faculty')
+            <div class="nav-section">My Library</div>
 
-                <a href="{{ route('reports.index') }}"
-                   class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
-                    <i class="bi bi-bar-chart-line"></i> Overview
-                </a>
+            <a href="{{ route('history.index') }}"
+               class="nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Reading History
+            </a>
+            <a href="{{ route('bookmarks.index') }}"
+               class="nav-link {{ request()->routeIs('bookmarks.*') ? 'active' : '' }}">
+                <i class="bi bi-bookmark-heart"></i> My Bookmarks
+            </a>
+            <a href="{{ route('recommendations.index') }}"
+               class="nav-link {{ request()->routeIs('recommendations.*') ? 'active' : '' }}">
+                <i class="bi bi-stars"></i> My Recommendations
+            </a>
 
-                <a href="{{ route('reports.access-logs') }}"
-                   class="nav-link {{ request()->routeIs('reports.access-logs') ? 'active' : '' }}">
-                    <i class="bi bi-clock-history"></i> Access Logs
-                </a>
-            @endif
+        {{-- ── RESEARCHER ────────────────────────────────────── --}}
+        @elseif(auth()->user()->role === 'researcher')
+            <div class="nav-section">My Library</div>
+
+            <a href="{{ route('history.index') }}"
+               class="nav-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Reading History
+            </a>
+            <a href="{{ route('bookmarks.index') }}"
+               class="nav-link {{ request()->routeIs('bookmarks.*') ? 'active' : '' }}">
+                <i class="bi bi-bookmark-heart"></i> My Bookmarks
+            </a>
+            <a href="{{ route('resource-requests.index') }}"
+               class="nav-link {{ request()->routeIs('resource-requests.*') ? 'active' : '' }}">
+                <i class="bi bi-envelope-plus"></i> My Requests
+            </a>
+        @endif
+
         @endauth
     </nav>
 
-    {{-- Logout at bottom --}}
+    {{-- Logout --}}
     @auth
     <div class="p-3 border-top border-white border-opacity-10">
         <form method="POST" action="{{ route('logout') }}">
@@ -146,7 +193,7 @@
     @endauth
 </div>
 
-{{-- Top Bar --}}
+{{-- ── Top Bar ──────────────────────────────────────────────── --}}
 @auth
 <div class="topbar">
     <span class="fw-semibold text-muted" style="font-size:0.9rem;">@yield('title')</span>
@@ -157,9 +204,8 @@
 </div>
 @endauth
 
-{{-- Main Content --}}
+{{-- ── Main Content ─────────────────────────────────────────── --}}
 <div class="main-content">
-    {{-- Flash Messages --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
@@ -175,13 +221,6 @@
 
     @yield('content')
 </div>
-
-@if(!auth()->user()->isLibrarian())
-<a href="{{ route('bookmarks.index') }}"
-   class="nav-link {{ request()->routeIs('bookmarks.*') ? 'active' : '' }}">
-    <i class="bi bi-bookmark-heart"></i> My Bookmarks
-</a>
-@endif
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')

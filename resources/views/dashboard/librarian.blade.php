@@ -96,10 +96,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(\App\Models\AccessLog::with(['user','eResource'])->latest('accessed_at')->take(8)->get() as $log)
+                        {{-- ✅ FIX: withTrashed() loads archived resources too, preventing null crash --}}
+                        @foreach(\App\Models\AccessLog::with(['user', 'eResource' => fn($q) => $q->withTrashed()])->latest('accessed_at')->take(8)->get() as $log)
                         <tr>
-                            <td class="small">{{ $log->user->full_name }}</td>
-                            <td class="text-truncate small" style="max-width:160px;">{{ $log->eResource->title }}</td>
+                            {{-- ✅ FIX: null-safe ?-> prevents crash if user was deleted --}}
+                            <td class="small">{{ $log->user?->full_name ?? '(deleted user)' }}</td>
+
+                            {{-- ✅ FIX: null-safe ?-> prevents crash if resource was hard-deleted --}}
+                            <td class="text-truncate small" style="max-width:160px;">
+                                {{ $log->eResource?->title ?? '(resource unavailable)' }}
+                                @if($log->eResource && $log->eResource->trashed())
+                                    <span class="badge bg-secondary ms-1" style="font-size:0.6rem;">archived</span>
+                                @endif
+                            </td>
+
                             <td>
                                 <span class="badge bg-{{ $log->access_type === 'download' ? 'success' : ($log->access_type === 'stream' ? 'warning text-dark' : 'secondary') }}">
                                     {{ ucfirst($log->access_type) }}
@@ -188,7 +198,8 @@
                         <div class="text-muted" style="font-size:0.75rem;">
                             by {{ $rec->author_name }}
                             &nbsp;·&nbsp;
-                            <span class="fw-semibold">{{ $rec->user->full_name }}</span>
+                            {{-- ✅ FIX: null-safe in case user was deleted --}}
+                            <span class="fw-semibold">{{ $rec->user?->full_name ?? '(deleted user)' }}</span>
                         </div>
                         @if($rec->reason)
                             <div class="text-muted fst-italic" style="font-size:0.72rem;">
@@ -253,7 +264,8 @@
                     <div style="max-width:210px;">
                         <div class="small fw-semibold text-truncate">{{ $req->title }}</div>
                         <div class="text-muted" style="font-size:0.75rem;">
-                            <span class="fw-semibold">{{ $req->user->full_name }}</span>
+                            {{-- ✅ FIX: null-safe in case user was deleted --}}
+                            <span class="fw-semibold">{{ $req->user?->full_name ?? '(deleted user)' }}</span>
                             &nbsp;·&nbsp;{{ $req->created_at->format('M d, Y') }}
                         </div>
                         @if($req->purpose)
